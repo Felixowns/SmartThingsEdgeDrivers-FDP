@@ -1,0 +1,5 @@
+name: 'Ergomotion Bed Driver'
+packageKey: 'ergomotion-bed-driver'
+permissions:
+  lan: {}
+  discovery: {}

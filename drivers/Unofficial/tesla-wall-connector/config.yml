@@ -1,0 +1,5 @@
+name: 'Tesla Wall Connector'
+packageKey: 'tesla-wall-connector'
+permissions:
+  lan: {}
+  discovery: {}

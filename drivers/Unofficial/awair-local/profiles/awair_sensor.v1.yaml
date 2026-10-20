@@ -1,0 +1,29 @@
+name: awair_sensor.v1
+components:
+- id: main
+  capabilities:
+  - id: airQualitySensor
+    version: 1
+  - id: temperatureMeasurement
+    version: 1
+  - id: relativeHumidityMeasurement
+    version: 1
+  - id: carbonDioxideMeasurement
+    version: 1
+  - id: tvocMeasurement
+    version: 1
+  - id: fineDustSensor
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+    - name: AirQualityDetector
+preferences:
+  - name: manualIP
+    title: "Awair IP Address"
+    description: "Enter your sensor's static local IP address (e.g., 192.168.1.xxx)"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: "text"
+      default: "192.168.1.xxx"

@@ -1,0 +1,11 @@
+zwaveManufacturer:
+  - id: 0086/0074
+    deviceLabel: Aeotec Switch
+    manufacturerId: 0x0086
+    productId: 0x0074
+    deviceProfileName: metering-switch-voltage
+zwaveThing :
+  - id: FDP/Z-WaveThing
+    deviceLabel: FDP-Z-Wave Device
+    deviceProfileName: switch-level
+    isJoinable: true

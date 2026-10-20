@@ -1,0 +1,5 @@
+name: 'Weather Flow Tempest'
+packageKey: 'weatherflow-tempest'
+permissions:
+  lan: {}
+  discovery: {}

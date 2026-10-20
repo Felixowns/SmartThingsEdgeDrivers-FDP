@@ -1,0 +1,56 @@
+name: envoy-local-power
+components:
+  - id: main
+    label: Solar Production
+    capabilities:
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: CurbPowerMeter
+  - id: consumed
+    label: Home Consumption
+    capabilities:
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+    categories:
+      - name: CurbPowerMeter
+  - id: grid
+    label: Grid
+    capabilities:
+      - id: powerMeter
+        version: 1
+      - id: switch
+        version: 1
+    categories:
+      - name: CurbPowerMeter
+preferences:
+  - name: ipAddress
+    title: Envoy IP Address
+    description: "Local IPv4 of your Envoy."
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "192.168.1.50"
+  - name: authToken1
+    title: "API Token (Part 1)"
+    description: "JWT token - first half"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: authToken2
+    title: "API Token (Part 2)"
+    description: "JWT token - second half"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""

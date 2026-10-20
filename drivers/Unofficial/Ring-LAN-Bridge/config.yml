@@ -1,0 +1,5 @@
+name: "Ring LAN Bridge"
+packageKey: "ring-lan-bridge"
+permissions:
+  lan: {}
+  discovery: {}

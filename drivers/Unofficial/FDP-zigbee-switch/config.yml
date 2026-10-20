@@ -1,0 +1,6 @@
+name: 'FDP Zigbee Switch'
+packageKey: 'FDP zigbee-switch'
+permissions:
+  zigbee: {}
+description: "FDP MODIFIED SmartThings driver for Zigbee switch devices"
+vendorSupportInformation: "https://support.smartthings.com"

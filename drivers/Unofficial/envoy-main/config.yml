@@ -1,0 +1,6 @@
+name: 'Enphase Envoy Local'
+packageKey: 'envoy-local.jaragon'
+description: 'Local LAN integration for Enphase Envoy (FW 7.x+)'
+permissions:
+  lan: {}
+  discovery: {}

@@ -1,0 +1,6 @@
+name: 'FDP-Z-Wave Switch'
+packageKey: 'FDP-zwave-switch'
+permissions:
+  zwave: {}
+description: "FDP for Z-Wave switch devices"
+vendorSupportInformation: "https://support.smartthings.com"

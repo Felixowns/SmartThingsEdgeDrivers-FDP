@@ -1,0 +1,96 @@
+name: ergomotion-bed
+components:
+- id: main
+  label: "Flat"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: zeroG
+  label: "Zero-G"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: stop
+  label: "Stop"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: mema
+  label: "Memory-A"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: memb
+  label: "Memory-B"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: lumbarup
+  label: "Lumbar-Up"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: lumbardown
+  label: "Lumbar-Down"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: headup
+  label: "Head-Up"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: headdown
+  label: "Head-Down"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: footup
+  label: "Foot-Up"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: footdown
+  label: "Foot-Down"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: headmasup
+  label: "Head-Massage-Up"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: headmasdown
+  label: "Head-Massage-Down"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: footmasup
+  label: "Foot-Massage-Up"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: footmasdown
+  label: "Foot-Massage-Down"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: timer
+  label: "Timer"
+  capabilities:
+  - id: momentary
+    version: 1
+- id: vibration
+  label: "Vibration"
+  capabilities:
+  - id: momentary
+    version: 1
+preferences:
+  - name: ipAddress
+    title: "Bed IP Address"
+    description: "Enter the IP address of your Ergomotion Bed"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: "text"
+      default: "192.168.1.xxx"

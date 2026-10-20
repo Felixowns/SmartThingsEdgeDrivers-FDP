@@ -1,0 +1,53 @@
+name: tesla-wall-connector
+components:
+  - id: main
+    label: Tesla Wall Connector
+    capabilities:
+      - id: voltageMeasurement
+        version: 1
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+      - id: temperatureMeasurement
+        version: 1
+      - id: contactSensor
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Charger
+  - id: handle
+    label: Charging Handle
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+    categories:
+      - name: Charger
+  - id: mcu
+    label: Internal Processor
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+    categories:
+      - name: Charger
+preferences:
+  - name: ipAddress
+    title: "Wall Connector IP Address"
+    description: "Enter the local IP address of your Gen 3 Wall Connector"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      minLength: 7
+      maxLength: 15
+      default: "192.168.1.xxx"
+  - name: pollingInterval
+    title: "Polling Interval (Seconds)"
+    description: "Frequency to poll the local API (Minimum 15s recommended)"
+    required: true
+    preferenceType: integer
+    definition:
+      minimum: 15
+      maximum: 300
+      default: 30
