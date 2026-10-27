@@ -6,6 +6,7 @@ local lazy_load_if_possible = require "lazy_load_subdriver"
 
 return {
     lazy_load_if_possible("non_zigbee_devices"),
+    lazy_load_if_possible("gledopto"),
     lazy_load_if_possible("hanssem"),
     lazy_load_if_possible("aqara"),
     lazy_load_if_possible("aqara-light"),

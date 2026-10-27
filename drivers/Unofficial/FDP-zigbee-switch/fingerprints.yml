@@ -3,22 +3,22 @@ zigbeeManufacturer:
     deviceLabel: Gledopto Switch
     manufacturer: GLEDOPTO
     model: GL-C-008
-    deviceProfileName: rgbw-bulb
+    deviceProfileName: gledopto-rgbw-2700K-6500K
   - id: GLEDOPTO/GL-C-007
     deviceLabel: Gledopto Switch
     manufacturer: GLEDOPTO
     model: GL-C-007
-    deviceProfileName: rgbw-bulb-2000K-6500K
+    deviceProfileName: gledopto-rgbw-2000K-6500K
   - id: GLEDOPTO/GL-C-007S
     deviceLabel: Gledopto Switch
     manufacturer: GLEDOPTO
     model: GL-C-007S
-    deviceProfileName: rgbw-bulb-2000K-6500K
+    deviceProfileName: gledopto-rgbw-2000K-6500K
   - id: GLEDOPTO/GL-C-007P
     deviceLabel: Gledopto Switch
     manufacturer: GLEDOPTO
     model: GL-C-007P
-    deviceProfileName: rgbw-bulb-2000K-6500K
+    deviceProfileName: gledopto-pro-rgbw-2000K-6500K
 zigbeeGeneric:
   - id: "genericSwitch"
     deviceLabel: Zigbee Switch

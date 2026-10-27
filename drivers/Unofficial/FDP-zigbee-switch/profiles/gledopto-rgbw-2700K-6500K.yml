@@ -1,0 +1,60 @@
+name: gledopto-rgbw-2700K-6500K
+components:
+- id: main
+  capabilities:
+  - id: switch
+    version: 1
+  - id: switchLevel
+    version: 1
+    config:
+      values:
+        - key: "level.value"
+          range: [1, 100]
+  - id: statelessSwitchLevelStep
+    version: 1
+  - id: colorTemperature
+    version: 1
+    config:
+      values:
+        - key: "colorTemperature.value"
+          range: [ 2700, 6500 ]
+  - id: statelessColorTemperatureStep
+    version: 1
+  - id: colorControl
+    version: 1
+  - id: mode
+    version: 1
+  - id: firmwareUpdate
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Light
+preferences:
+  - title: "Transition time (seconds)"
+    name: transitionTime
+    description: "Fade time for brightness, color and color temperature changes (0 = instant)"
+    required: false
+    preferenceType: number
+    definition:
+      minimum: 0
+      maximum: 10
+      default: 0.5
+  - title: "Auto-off timer (minutes)"
+    name: autoOffMinutes
+    description: "Turn off automatically this many minutes after being turned on (0 = disabled)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 109
+      default: 0
+  - title: "Color loop speed (seconds)"
+    name: colorLoopSpeed
+    description: "Seconds for one full trip around the color wheel when the Color loop effect runs"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 1
+      maximum: 600
+      default: 30
