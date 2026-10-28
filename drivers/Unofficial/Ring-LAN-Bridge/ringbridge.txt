@@ -1,0 +1,205 @@
+// Ring LAN Bridge for SmartThings (runs in Termux)
+//
+// Token: Ring rotates refresh tokens, so the newest one is saved to
+// .ring-token next to this file and preferred on later runs. The hardcoded
+// token below (or RING_REFRESH_TOKEN) is only used when no saved token exists.
+// After pasting a new token here, delete .ring-token so it gets used.
+
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const { RingApi } = require('ring-client-api');
+
+const PORT = process.env.PORT || 8080;
+const TOKEN_FILE = path.join(__dirname, '.ring-token');
+const HARDCODED_TOKEN = 'token here inside quotes';
+const SUBSCRIBER_TTL_MS = 5 * 60 * 1000; // hub re-registers every ~30s
+const PUSH_TIMEOUT_MS = 2000;
+
+// =============================================================
+// DEVICE EXCLUSION LIST
+// Exact device names to ignore (case-insensitive).
+// =============================================================
+const EXCLUDED_DEVICE_NAMES = [
+  'Carters Bridge Pl Culdsac',
+  'Carters Bridge Entrance',
+  'Carters Bridge Pl West',
+  'Carters Bridge Pl East',
+  'Carters Bridge Ct Culdsac',
+  'Carters',
+  // Add additional device names here
+];
+
+function isExcluded(deviceName) {
+  if (!deviceName) return false;
+  const target = deviceName.trim().toLowerCase();
+  return EXCLUDED_DEVICE_NAMES.some((excluded) => excluded.trim().toLowerCase() === target);
+}
+
+function loadToken() {
+  try {
+    const saved = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
+    if (saved) return saved;
+  } catch (_) { /* no saved token yet */ }
+  return process.env.RING_REFRESH_TOKEN || HARDCODED_TOKEN;
+}
+
+const ringApi = new RingApi({ refreshToken: loadToken() });
+ringApi.onRefreshTokenUpdated.subscribe(({ newRefreshToken }) => {
+  try {
+    fs.writeFileSync(TOKEN_FILE, newRefreshToken, { mode: 0o600 });
+    console.log('Saved refreshed Ring token');
+  } catch (e) {
+    console.error('Could not save refreshed token:', e.message);
+  }
+});
+
+const deviceCache = {};   // id -> { state } | { on }
+const ringDevices = {};   // id -> ring-client-api device/camera
+const subscribers = new Map(); // callback url -> last registration time
+
+// ---- Push to SmartThings hub(s) ----------------------------------------
+function pushUpdate(id, value) {
+  const now = Date.now();
+  const body = JSON.stringify({ id: String(id), ...value });
+  for (const [url, seen] of subscribers) {
+    if (now - seen > SUBSCRIBER_TTL_MS) {
+      subscribers.delete(url);
+      continue;
+    }
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),
+    }).catch((e) => console.warn(`Push to ${url} failed: ${e.message}`));
+  }
+}
+
+// Update the cache and push only when the value actually changed.
+function setState(id, value) {
+  const prev = deviceCache[id];
+  deviceCache[id] = value;
+  if (JSON.stringify(prev) !== JSON.stringify(value)) {
+    pushUpdate(id, value);
+  }
+}
+
+// ---- Ring setup -------------------------------------------------------------
+async function start() {
+  try {
+    const locations = await ringApi.getLocations();
+    if (!locations.length) {
+      console.error('No Ring locations found.');
+      return;
+    }
+
+    for (const location of locations) {
+      console.log(`\n--- Searching Location: "${location.name}" ---`);
+
+      // 1. Ring Alarm contact sensors
+      const devices = await location.getDevices();
+      devices.forEach((device) => {
+        const type = (device.data?.deviceType || '').toLowerCase();
+        const name = device.data?.description || device.name || 'Ring Device';
+        if (type !== 'sensor.contact') return;
+        if (isExcluded(name)) {
+          console.log(`[EXCLUDED SENSOR] Skipping: "${name}"`);
+          return;
+        }
+        ringDevices[device.id] = device;
+        deviceCache[device.id] = { state: device.data?.faulted ? 'open' : 'closed' };
+        device.onData.subscribe((data) => {
+          setState(device.id, { state: data.faulted ? 'open' : 'closed' });
+        });
+      });
+
+      // 2. Cameras with lights
+      (location.cameras || []).forEach((camera) => {
+        const name = camera.name || 'Ring Camera';
+        console.log(`[Camera Detected] "${name}" | ID: ${camera.id} | Has Light: ${camera.hasLight}`);
+        if (!camera.hasLight) return;
+        if (isExcluded(name)) {
+          console.log(`[EXCLUDED CAMERA LIGHT] Skipping: "${name}"`);
+          return;
+        }
+        ringDevices[camera.id] = camera;
+        deviceCache[camera.id] = { on: camera.data?.led_status === 'on' };
+        camera.onData.subscribe((data) => {
+          setState(camera.id, { on: data.led_status === 'on' });
+        });
+      });
+    }
+
+    console.log(`\nBridge ready. Total active endpoints monitored: ${Object.keys(ringDevices).length}\n`);
+  } catch (err) {
+    console.error('Ring initialization error:', err);
+  }
+}
+
+// ---- HTTP API ---------------------------------------------------------------
+const app = express();
+app.use(express.json());
+
+// Auto-discovery
+app.get('/api/devices', (req, res) => {
+  const deviceList = Object.values(ringDevices)
+    .map((device) => {
+      const isCamera = typeof device.setLight === 'function' || !!device.hasLight;
+      const type = (device.data?.deviceType || '').toLowerCase();
+      let category = 'unknown';
+      if (type === 'sensor.contact') category = 'contact';
+      else if (isCamera || type.includes('light') || type.includes('switch')) category = 'light';
+      return {
+        id: device.id,
+        name: device.name || device.data?.description || 'Ring Light',
+        category,
+      };
+    })
+    .filter((d) => d.category !== 'unknown');
+  res.json(deviceList);
+});
+
+// All states in one response (used by the hub's fallback poll)
+app.get('/api/states', (req, res) => {
+  res.json(deviceCache);
+});
+
+// Hub registers its callback URL here; it re-registers periodically
+app.post('/api/subscribe', (req, res) => {
+  const url = req.body?.url;
+  if (typeof url !== 'string' || !/^http:\/\/[\d.]+:\d+\//.test(url)) {
+    return res.status(400).json({ error: 'url must be http://<ip>:<port>/...' });
+  }
+  if (!subscribers.has(url)) console.log(`Hub subscribed: ${url}`);
+  subscribers.set(url, Date.now());
+  res.json({ success: true });
+});
+
+// Per-device state (kept for compatibility)
+app.get('/api/sensors/:id', (req, res) => {
+  res.json(deviceCache[req.params.id] || { state: 'unknown' });
+});
+app.get('/api/lights/:id', (req, res) => {
+  res.json(deviceCache[req.params.id] || { on: false });
+});
+
+// Light control
+app.post('/api/lights/:id/state', async (req, res) => {
+  const device = ringDevices[req.params.id];
+  const turnOn = !!req.body?.on;
+  if (!device) return res.status(404).json({ error: 'Device not found or excluded' });
+  if (typeof device.setLight !== 'function') {
+    return res.status(400).json({ error: 'Device does not support setLight' });
+  }
+  try {
+    await device.setLight(turnOn);
+    setState(req.params.id, { on: turnOn });
+    res.json({ success: true, on: turnOn });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.listen(PORT, () => console.log(`Ring bridge active on port ${PORT}`));
+start();
