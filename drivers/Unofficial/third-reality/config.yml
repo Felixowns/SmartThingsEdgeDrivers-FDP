@@ -1,6 +1,0 @@
-name: 'third-reality'
-packageKey: 'third-reality'
-permissions:
-  zigbee: {}
-description: "FDP MODIFIED driver for third-reality devices"
-vendorSupportInformation: "https://support.smartthings.com"
