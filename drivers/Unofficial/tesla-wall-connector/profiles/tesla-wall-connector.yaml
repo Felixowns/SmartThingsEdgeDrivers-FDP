@@ -3,39 +3,42 @@ components:
   - id: main
     label: Tesla Wall Connector
     capabilities:
-      - id: voltageMeasurement
+      - id: evseState
         version: 1
       - id: powerMeter
         version: 1
       - id: energyMeter
         version: 1
-      - id: temperatureMeasurement
+      - id: powerConsumptionReport
         version: 1
-      - id: contactSensor
+      - id: voltageMeasurement
+        version: 1
+      - id: temperatureMeasurement
         version: 1
       - id: refresh
         version: 1
     categories:
-      - name: Charger
+      - name: ElectricVehicleCharger
+  - id: session
+    label: Current Session
+    capabilities:
+      - id: energyMeter
+        version: 1
   - id: handle
     label: Charging Handle
     capabilities:
       - id: temperatureMeasurement
         version: 1
-    categories:
-      - name: Charger
   - id: mcu
     label: Internal Processor
     capabilities:
       - id: temperatureMeasurement
         version: 1
-    categories:
-      - name: Charger
 preferences:
   - name: ipAddress
     title: "Wall Connector IP Address"
-    description: "Enter the local IP address of your Gen 3 Wall Connector"
-    required: true
+    description: "Optional. Leave as-is to use the auto-discovered IP. Set this to force a specific IP."
+    required: false
     preferenceType: string
     definition:
       stringType: text
