@@ -1,0 +1,61 @@
+name: third-reality-plug-gen2
+components:
+  - id: main
+    capabilities:
+      - id: switch
+        version: 1
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+      - id: powerConsumptionReport
+        version: 1
+      - id: voltageMeasurement
+        version: 1
+      - id: currentMeasurement
+        version: 1
+      - id: firmwareUpdate
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: SmartPlug
+preferences:
+  - name: "powerOnState"
+    title: "Power-On State"
+    description: "Behavior when power is restored after an outage"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        "0": "Always Off"
+        "1": "Always On"
+        "255": "Restore Last State"
+      default: "255"
+  - name: "ledBrightness"
+    title: "LED Brightness (%)"
+    description: "Brightness of the status LED (0 = off)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 100
+      default: 100
+  - name: "countdownToTurnOff"
+    title: "Countdown ON to OFF (seconds)"
+    description: "After turning on, turn off after this many seconds. 0 = disabled"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0
+  - name: "countdownToTurnOn"
+    title: "Countdown OFF to ON (seconds)"
+    description: "After turning off, turn back on after this many seconds. 0 = disabled"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0

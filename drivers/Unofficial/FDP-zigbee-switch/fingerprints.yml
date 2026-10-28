@@ -19,83 +19,13 @@ zigbeeManufacturer:
     manufacturer: GLEDOPTO
     model: GL-C-007P
     deviceProfileName: gledopto-pro-rgbw-2000K-6500K
-zigbeeGeneric:
-  - id: "genericSwitch"
-    deviceLabel: Zigbee Switch
-    clusters:
-      server:
-        - 0x0006 #OnOff
-    deviceProfileName: basic-switch
-  - id: "genericDimmer"
-    deviceLabel: Zigbee Dimmer
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-    deviceProfileName: switch-level
-  - id: "genericColorBulb"
-    deviceLabel: Zigbee Light
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-        - 0x0300 #Color Control
-    deviceProfileName: rgbw-bulb
-  - id: "genericZLLColorTempBulb"
-    deviceLabel: Zigbee Light
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-        - 0x0300 #Color Control
-    deviceIdentifiers:
-      - 0x0220
-    deviceProfileName: color-temp-bulb-2700K-6500K
-  - id: "genericZHAColorTempBulb"
-    deviceLabel: Zigbee Light
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-        - 0x0300 #Color Control
-    deviceIdentifiers:
-      - 0x010C
-    deviceProfileName: color-temp-bulb-2700K-6500K
-  - id: "genericMeteredSwitch"
-    deviceLabel: Zigbee Switch
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0702 #Simple Metering
-    deviceProfileName: switch-power-energy
-  - id: "genericMeteredDimmer"
-    deviceLabel: Zigbee Dimmer
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-        - 0x0702 #Simple Metering
-    deviceProfileName: switch-dimmer-power-energy
-  - id: "genericMeteredSwitch/2"
-    deviceLabel: Zigbee Switch
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0B04 #Electrical Measurment
-    deviceProfileName: switch-power
-  - id: "genericMeteredDimmer/2"
-    deviceLabel: Zigbee Dimmer
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0008 #Level
-        - 0x0B04 #Electrical Measurment
-    deviceProfileName: switch-level-power
-  - id: "genericMeteredSwitch/3"
-    deviceLabel: Zigbee Switch
-    clusters:
-      server:
-        - 0x0006 #OnOff
-        - 0x0702 #Simple Metering
-        - 0x0B04 #Electrical Measurment
-    deviceProfileName: switch-power
+  - id: "Third Reality/3RSP02064Z"
+    deviceLabel: Third Reality Smart Plug Gen 3
+    manufacturer: Third Reality, Inc
+    model: 3RSP02064Z
+    deviceProfileName: third-reality-plug-gen3
+  - id: "Third Reality/3RSP02028BZ"
+    deviceLabel: Third Reality Smart Plug Gen 2
+    manufacturer: Third Reality, Inc
+    model: 3RSP02028BZ
+    deviceProfileName: third-reality-plug-gen2
