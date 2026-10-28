@@ -6,7 +6,11 @@ components:
         version: 1
       - id: relativeHumidityMeasurement
         version: 1
+      - id: dewPoint
+        version: 1
       - id: atmosphericPressureMeasurement
+        version: 1
+      - id: windSpeed
         version: 1
       - id: illuminanceMeasurement
         version: 1
@@ -14,7 +18,33 @@ components:
         version: 1
       - id: precipitationSensor
         version: 1
+      - id: battery
+        version: 1
       - id: voltageMeasurement
         version: 1
     categories:
       - name: WeatherStation
+preferences:
+  - name: bridgeIp
+    title: "Relay (phone) IP Address"
+    description: "IP address of the Android phone running the Tempest relay"
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "192.168.1.17"
+  - name: unitSystem
+    title: "Pressure & Wind Units"
+    preferenceType: enumeration
+    definition:
+      options:
+        imperial: "Imperial (inHg, mph)"
+        metric: "Metric (mbar, km/h)"
+      default: imperial
+  - name: elevationM
+    title: "Station Elevation (meters)"
+    description: "Set to report sea-level pressure; 0 reports raw station pressure"
+    preferenceType: integer
+    definition:
+      minimum: -500
+      maximum: 9000
+      default: 0
