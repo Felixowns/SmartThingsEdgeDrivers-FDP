@@ -5,6 +5,23 @@ components:
   capabilities:
   - id: momentary
     version: 1
+  - id: refresh
+    version: 1
+- id: head
+  label: "Head Position"
+  capabilities:
+  - id: switchLevel
+    version: 1
+- id: foot
+  label: "Foot Position"
+  capabilities:
+  - id: switchLevel
+    version: 1
+- id: lumbar
+  label: "Lumbar Position"
+  capabilities:
+  - id: switchLevel
+    version: 1
 - id: zeroG
   label: "Zero-G"
   capabilities:
@@ -25,65 +42,25 @@ components:
   capabilities:
   - id: momentary
     version: 1
-- id: lumbarup
-  label: "Lumbar-Up"
+- id: headMassage
+  label: "Head Massage"
   capabilities:
-  - id: momentary
+  - id: fanSpeed
     version: 1
-- id: lumbardown
-  label: "Lumbar-Down"
+- id: footMassage
+  label: "Foot Massage"
   capabilities:
-  - id: momentary
+  - id: fanSpeed
     version: 1
-- id: headup
-  label: "Head-Up"
+- id: massageTimer
+  label: "Massage Timer"
   capabilities:
-  - id: momentary
-    version: 1
-- id: headdown
-  label: "Head-Down"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: footup
-  label: "Foot-Up"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: footdown
-  label: "Foot-Down"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: headmasup
-  label: "Head-Massage-Up"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: headmasdown
-  label: "Head-Massage-Down"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: footmasup
-  label: "Foot-Massage-Up"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: footmasdown
-  label: "Foot-Massage-Down"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: timer
-  label: "Timer"
-  capabilities:
-  - id: momentary
+  - id: mode
     version: 1
 - id: vibration
-  label: "Vibration"
+  label: "Vibration Pattern"
   capabilities:
-  - id: momentary
+  - id: fanSpeed
     version: 1
 preferences:
   - name: ipAddress
@@ -94,3 +71,39 @@ preferences:
     definition:
       stringType: "text"
       default: "192.168.1.xxx"
+  - name: lumbarSeconds
+    title: "Lumbar full travel (seconds)"
+    description: "Time for the lumbar to go from fully down to fully up. The lumbar slider estimates position from this."
+    required: false
+    preferenceType: number
+    definition:
+      minimum: 2
+      maximum: 60
+      default: 15
+  - name: presetSeconds
+    title: "Preset settle time (seconds)"
+    description: "Wait this long after Flat/Zero-G/Memory before reading the position"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 5
+      maximum: 60
+      default: 25
+  - name: headMax
+    title: "Head max travel (raw, 0 = auto)"
+    description: "Raw head position at full raise. Leave 0 to learn it by setting Head Position to 100%"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0
+  - name: footMax
+    title: "Foot max travel (raw, 0 = auto)"
+    description: "Raw foot position at full raise. Leave 0 to learn it by setting Foot Position to 100%"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0
