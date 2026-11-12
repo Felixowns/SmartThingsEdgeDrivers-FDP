@@ -1,0 +1,71 @@
+name: tailwind-iq3
+components:
+  - id: main
+    label: Controller
+    capabilities:
+      - id: signalStrength
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Bridges
+  - id: statusLed
+    label: Status LED
+    capabilities:
+      - id: switchLevel
+        version: 1
+    categories:
+      - name: Light
+  - id: identify
+    label: Identify (blink LED)
+    capabilities:
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+  - id: reboot
+    label: Reboot controller
+    capabilities:
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+preferences:
+  - name: localKey
+    title: "Local Control Key"
+    description: "6-digit key from web.gotailwind.com > Local Control Key"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: ipAddress
+    title: "IP address (optional)"
+    description: "Leave blank to use the address found by discovery"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: usePush
+    title: "Instant status (UDP push)"
+    description: "Controller reports door changes to the hub immediately"
+    required: false
+    preferenceType: boolean
+    definition:
+      default: true
+  - name: pollInterval
+    title: "Backup poll interval (seconds)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 10
+      maximum: 3600
+      default: 60
+  - name: serverMonitor
+    title: "Cloud connection monitoring"
+    description: "Off = controller never self-reboots when the internet is down (fw 10.61+)"
+    required: false
+    preferenceType: boolean
+    definition:
+      default: true

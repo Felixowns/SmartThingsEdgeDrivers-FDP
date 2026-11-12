@@ -1,0 +1,40 @@
+name: tailwind-door
+components:
+  - id: main
+    capabilities:
+      - id: doorControl
+        version: 1
+      - id: contactSensor
+        version: 1
+      - id: tamperAlert
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: GarageDoor
+  - id: partial
+    label: Partial open
+    capabilities:
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+preferences:
+  - name: travelTime
+    title: "Door travel time (seconds)"
+    description: "How long Opening/Closing is shown before trusting the reported state"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 5
+      maximum: 120
+      default: 20
+  - name: partialTime
+    title: "Partial open time (seconds)"
+    description: "Run time for the Partial open button (0 = disabled)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 60
+      default: 0

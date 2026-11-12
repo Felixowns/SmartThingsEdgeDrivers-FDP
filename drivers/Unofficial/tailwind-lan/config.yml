@@ -1,0 +1,6 @@
+name: 'Tailwind LAN'
+packageKey: 'tailwind-lan'
+description: 'Local control of Tailwind iQ3 garage door controllers (and Tailwind Light) over the Tailwind Local Control API'
+permissions:
+  lan: {}
+  discovery: {}

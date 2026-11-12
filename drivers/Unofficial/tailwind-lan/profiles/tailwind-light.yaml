@@ -1,0 +1,89 @@
+name: tailwind-light
+components:
+  - id: main
+    capabilities:
+      - id: switch
+        version: 1
+      - id: switchLevel
+        version: 1
+      - id: signalStrength
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Light
+  - id: lightMode
+    label: Mode (auto = radar)
+    capabilities:
+      - id: mode
+        version: 1
+    categories:
+      - name: Others
+  - id: identify
+    label: Identify
+    capabilities:
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+  - id: reboot
+    label: Reboot controller
+    capabilities:
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+preferences:
+  - name: localKey
+    title: "Local Control Key"
+    description: "6-digit key from web.gotailwind.com > Local Control Key"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: ipAddress
+    title: "IP address (optional)"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: usePush
+    title: "Instant status (UDP push)"
+    required: false
+    preferenceType: boolean
+    definition:
+      default: true
+  - name: pollInterval
+    title: "Backup poll interval (seconds)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 10
+      maximum: 3600
+      default: 60
+  - name: radarDelay
+    title: "Stay-on time after motion (s)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 300
+  - name: radarLux
+    title: "Radar active below (lux)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 1000
+  - name: radarDistance
+    title: "Radar sensitivity (0-15)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 15
+      default: 15
