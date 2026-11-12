@@ -1,0 +1,7 @@
+name: 'Honeywell T10 (HomeKit local)'
+packageKey: 'honeywell-t10-homekit'
+permissions:
+  lan: {}
+  discovery: {}
+description: "Honeywell Home T10 / T10+ Pro thermostat and RedLINK room sensors, locally over HomeKit (no cloud)"
+vendorSupportInformation: "https://support.smartthings.com"

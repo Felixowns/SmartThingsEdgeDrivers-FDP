@@ -1,0 +1,114 @@
+name: honeywell-t10-fan
+components:
+  - id: main
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+      - id: relativeHumidityMeasurement
+        version: 1
+      - id: thermostatOperatingState
+        version: 1
+      - id: thermostatMode
+        version: 1
+      - id: thermostatHeatingSetpoint
+        version: 1
+      - id: thermostatCoolingSetpoint
+        version: 1
+      - id: thermostatFanMode
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Thermostat
+  - id: humidityTarget
+    label: "Humidity target"
+    capabilities:
+      - id: switchLevel
+        version: 1
+    categories:
+      - name: Humidifier
+  - id: filter1
+    label: "Filter 1"
+    capabilities:
+      - id: filterStatus
+        version: 1
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+  - id: filter2
+    label: "Filter 2"
+    capabilities:
+      - id: filterStatus
+        version: 1
+      - id: momentary
+        version: 1
+    categories:
+      - name: Others
+preferences:
+  - name: homekitCode
+    title: HomeKit code
+    description: "8-digit code from the thermostat screen (Menu > Connect HomeKit). Needed once for pairing."
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - name: tempUnit
+    title: Temperature unit
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        F: "Fahrenheit"
+        C: "Celsius"
+      default: F
+  - name: recordInterval
+    title: Record interval (minutes)
+    description: "Temperature and humidity (thermostat and room sensors) are recorded at least this often, even when they did not change. 0 = only on change."
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 120
+      default: 5
+  - name: roomSensors
+    title: Room sensor devices
+    description: "Create a SmartThings device for each RedLINK room sensor the thermostat shares over HomeKit."
+    required: false
+    preferenceType: boolean
+    definition:
+      default: true
+  - name: ipAddress
+    title: Thermostat IP (optional)
+    description: Leave on "auto" (found via mDNS). Only set when discovery fails.
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "auto"
+  - name: hapPort
+    title: HomeKit port (optional)
+    description: 0 = auto (mDNS). Needed together with a fixed IP.
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0
+  - name: resetPairing
+    title: Remove pairing
+    description: Switch on to unpair the hub from the thermostat (e.g. before re-pairing).
+    required: false
+    preferenceType: boolean
+    definition:
+      default: false
+  - name: circulateMinutes
+    title: Circulate minutes per hour
+    description: "Fan mode Circulate: the driver runs the fan this many minutes each hour (HomeKit has no circulate mode, so the hub times it)."
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 5
+      maximum: 55
+      default: 20

@@ -1,0 +1,12 @@
+name: honeywell-t10-sensor-h
+components:
+  - id: main
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+      - id: relativeHumidityMeasurement
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: TempHumiditySensor
