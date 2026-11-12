@@ -4,6 +4,14 @@ local cosock = require("cosock")
 local socket = require("cosock.socket")
 local capabilities = require("st.capabilities")
 
+-- Look up a capability without failing if the hub has no definition for it
+-- (motionBed and the proposed massage capabilities may not exist on every hub).
+local function cap(id)
+  local ok, c = pcall(function() return capabilities[id] end)
+  if ok then return c end
+  return nil
+end
+
 -- Base configuration
 local PROFILE_NAME = "ergomotion-bed"
 local PORT = 5000
@@ -13,6 +21,10 @@ local OVERRUN = 1.15            -- when driving to 100%, stop at this multiple o
 local STALL_S = 1.0             -- no position change for this long = end of travel
 local DEFAULT_MAX = { head = 4000, foot = 4000 } -- used until the real maximum is learned
 local EMIT_INTERVAL_S = 1.0     -- throttle slider updates while moving
+local HEALTH_TICK_S = 60        -- health timer tick
+local HEALTH_INTERVAL_S = 300   -- check connectivity this often while online (any real command also counts)
+local HEALTH_FAILS = 2          -- consecutive failed connections before marking offline
+local PRESET_TOL = 0.03         -- position match tolerance for preset modes (fraction of max travel)
 
 -- 1. COMMANDS (4 button bytes; frames are built with checksums by build_frame)
 local BTN = {
@@ -53,18 +65,6 @@ end
 local FRAMES = {}
 for name, btn in pairs(BTN) do FRAMES[name] = build_frame(btn) end
 
--- Momentary tiles: component -> { command, kind }
---   (head/foot/lumbar movement is done with the position sliders)
---   kind "preset" = single press, bed moves on its own; position read after it settles
---   kind "tap"    = single press (massage/timer etc.)
-local BUTTONS = {
-  main        = { "FLAT", "preset" },
-  zeroG       = { "ZERO_G", "preset" },
-  mema        = { "MEM_A", "preset" },
-  memb        = { "MEM_B", "preset" },
-  stop        = { "STOP", "stop" },
-}
-
 -- Massage intensity is reported as 0/1/3/6; the dropdowns use Off/Low/Medium/High.
 local MASSAGE_MODES = { "Off", "Low", "Medium", "High" }
 local TIMER_MODES = { "Off", "10 min", "20 min", "30 min" }
@@ -86,6 +86,23 @@ local function index_of(list, value)
   for i, v in ipairs(list) do if v == value then return i - 1 end end
   return nil
 end
+
+-- motionBed capability mapping
+local MB_MODES = { "preset1", "preset2", "zeroG", "flat" }
+local MB_MODE_FRAME = { preset1 = "MEM_A", preset2 = "MEM_B", zeroG = "ZERO_G", flat = "FLAT" }
+local MB_MATCH_ORDER = { "flat", "zeroG", "preset1", "preset2" }
+local MB_POSITIONS = { "headUp", "headDown", "footUp", "footDown", "elevationUp", "elevationDown" }
+-- position -> { frame, part (nil = lumbar), direction }
+local MB_MOVES = {
+  headUp        = { "HEAD_UP", "head", 1 },
+  headDown      = { "HEAD_DOWN", "head", -1 },
+  footUp        = { "FOOT_UP", "foot", 1 },
+  footDown      = { "FOOT_DOWN", "foot", -1 },
+  elevationUp   = { "LUMBAR_UP", nil, 1 },   -- elevation is used for the lumbar motor
+  elevationDown = { "LUMBAR_DOWN", nil, -1 },
+}
+-- which learned presets each "Relearn preset position" setting clears
+local RELEARN = { memA = { "preset1" }, memB = { "preset2" }, zeroG = { "zeroG" }, all = { "preset1", "preset2", "zeroG" } }
 
 local PARTS = {
   head = { up = "HEAD_UP", down = "HEAD_DOWN" },
@@ -141,6 +158,36 @@ local function get_ip(device)
   return (ip:gsub("%s+", ""))
 end
 
+-- HEALTH: switch on main = bed reachable on the network; device is marked offline after
+-- HEALTH_FAILS failed connections in a row (immediately if it was never seen online).
+local function emit_switch(device)
+  local on = device:get_field("online") == true
+  device:emit_component_event(device.profile.components.main,
+    on and capabilities.switch.switch.on() or capabilities.switch.switch.off())
+end
+
+local function set_online(device, ok)
+  local was = device:get_field("online")
+  if ok then
+    device:set_field("fail_count", 0)
+    device:set_field("last_ok", socket.gettime())
+    if was ~= true then
+      log.info(string.format("[%s] Bed is online", device.label))
+      device:online()
+      device:set_field("online", true)
+      emit_switch(device)
+    end
+  else
+    local n = (device:get_field("fail_count") or 0) + 1
+    device:set_field("fail_count", n)
+    if was == false or (was == true and n < HEALTH_FAILS) then return end
+    log.warn(string.format("[%s] Bed is offline (%d failed connection%s)", device.label, n, n == 1 and "" or "s"))
+    device:set_field("online", false)
+    emit_switch(device)
+    device:offline()
+  end
+end
+
 local function open_conn(device)
   local ip = get_ip(device)
   if not ip then
@@ -153,10 +200,23 @@ local function open_conn(device)
   if not ok then
     log.error(string.format("[%s] Connection to %s:%d failed: %s", device.label, ip, PORT, tostring(err)))
     sock:close()
+    set_online(device, false)
     return nil
   end
+  set_online(device, true)
   sock:settimeout(RX_WAIT_S)
   return { sock = sock, buf = "" }
+end
+
+-- Connect and close without sending anything (does not disturb the bed).
+local function health_check(device)
+  if device:get_field("op_busy") or not get_ip(device) then return end
+  local sock = socket.tcp()
+  sock:settimeout(3)
+  local ok, err = sock:connect(get_ip(device), PORT)
+  sock:close()
+  if not ok then log.debug(string.format("[%s] Health check failed: %s", device.label, tostring(err))) end
+  set_online(device, ok and true or false)
 end
 
 -- Send one frame and collect whatever status arrives within RX_WAIT_S.
@@ -203,6 +263,108 @@ local function emit_level(device, part, level, force)
   end
 end
 
+-- PRESET MODES: learned head/foot position for each motionBed mode (flat is always 0/0)
+local function get_preset(device, mode)
+  if mode == "flat" then return { head = 0, foot = 0 } end
+  return device:get_field("preset_" .. mode)
+end
+
+local function learn_preset(device, mode, st)
+  if mode == "flat" or not st or get_preset(device, mode) then return end
+  device:set_field("preset_" .. mode, { head = st.head, foot = st.foot }, { persist = true })
+  log.info(string.format("[%s] Learned %s position: head=%d foot=%d", device.label, mode, st.head, st.foot))
+end
+
+local function match_mode(device, st)
+  local tol_h = math.max(150, get_max(device, "head") * PRESET_TOL)
+  local tol_f = math.max(150, get_max(device, "foot") * PRESET_TOL)
+  for _, mode in ipairs(MB_MATCH_ORDER) do
+    local p = get_preset(device, mode)
+    if p and math.abs(st.head - p.head) <= tol_h and math.abs(st.foot - p.foot) <= tol_f then return mode end
+  end
+  return "noMode"
+end
+
+local function emit_bed_mode(device, mode, force)
+  local mb = cap("motionBed")
+  if not mb then return end
+  if force or device:get_field("bed_mode") ~= mode then
+    device:emit_component_event(device.profile.components.main, mb.mode(mode))
+    device:set_field("bed_mode", mode)
+  end
+end
+
+-- MASSAGE CAPABILITIES (proposed): massageIntensityControl, massageIntensityChange,
+-- massageOperating, massageOperatingState, massageTimeChange, massageTimeControl on main.
+local MASSAGE_POSITIONS = { "head", "foot", "whole" }
+local MASSAGE_SET_TIMES = { 0, 10, 20, 30 }
+
+local function iso_utc(epoch)
+  return os.date("!%Y-%m-%dT%H:%M:%SZ", math.floor(epoch))
+end
+
+local function emit_main(device, capability, event_fn, value, field, force)
+  if not capability then return end
+  if force or device:get_field(field) ~= value then
+    device:emit_component_event(device.profile.components.main, event_fn(value))
+    device:set_field(field, value)
+  end
+end
+
+local function report_massage(device, st, force)
+  local head, foot = mas_index(st.head_mas), mas_index(st.foot_mas)
+  local running = head > 0 or foot > 0
+  if running then device:set_field("last_mas", { head = head, foot = foot }, { persist = true }) end
+
+  local mic = cap("massageIntensityControl")
+  if mic then
+    emit_main(device, mic, mic.intensityHead, head, "mic_head", force)
+    emit_main(device, mic, mic.intensityFoot, foot, "mic_foot", force)
+    emit_main(device, mic, mic.intensityWhole, math.max(head, foot), "mic_whole", force)
+  end
+  local state = running and "on" or "off"
+  local mo, mos = cap("massageOperating"), cap("massageOperatingState")
+  if mo then emit_main(device, mo, mo.massageState, state, "mo_state", force) end
+  if mos then emit_main(device, mos, mos.massageState, state, "mos_state", force) end
+
+  local mtc = cap("massageTimeControl")
+  if mtc then
+    local now = os.time()
+    local last = device:get_field("mtc_epoch")
+    local target
+    if running then
+      target = now + st.remaining // 100
+    elseif last == nil or last > now then
+      target = now -- stopped (or never ran): completion is now
+    else
+      target = last
+    end
+    if force or last == nil or math.abs(target - last) > 5 then
+      device:emit_component_event(device.profile.components.main, mtc.completionTime(iso_utc(target)))
+      device:set_field("mtc_epoch", target)
+    end
+  end
+end
+
+-- Attributes that never change (supported lists/ranges). Sent at startup and on every full
+-- report, so a profile update picked up later (or a dropped event) is filled in by a refresh.
+local function emit_static(device)
+  local main = device.profile.components.main
+  local mb = cap("motionBed")
+  if mb then
+    device:emit_component_event(main, mb.supportedModes(MB_MODES))
+    device:emit_component_event(main, mb.supportedMotionPositions(MB_POSITIONS))
+    device:emit_component_event(main, mb.statelessMode(false))
+  end
+  local mic, mich, mtc = cap("massageIntensityControl"), cap("massageIntensityChange"), cap("massageTimeControl")
+  if mic then
+    device:emit_component_event(main, mic.intensityRange({ minimum = 0, maximum = 3, step = 1 }))
+    device:emit_component_event(main, mic.supportedPositions(MASSAGE_POSITIONS))
+  end
+  if mich then device:emit_component_event(main, mich.supportedPositions(MASSAGE_POSITIONS)) end
+  if mtc then device:emit_component_event(main, mtc.supportedSetTimes(MASSAGE_SET_TIMES)) end
+end
+
 local function report(device, st, force)
   if not st then return end
   for part, _ in pairs(PARTS) do
@@ -213,36 +375,26 @@ local function report(device, st, force)
   -- lumbar is not in the status frame; republish the estimate on every full report
   if force then emit_level(device, "lumbar", device:get_field("lumbar_pos") or 0, true) end
 
-  -- massage + timer
-  local function emit_mode(comp, value)
-    if force or device:get_field(comp .. "_mode") ~= value then
-      device:emit_component_event(device.profile.components[comp], capabilities.mode.mode(value))
-      device:set_field(comp .. "_mode", value)
-    end
-  end
+  -- massage (intensity/timer are reported by the massage capabilities on main)
   local running = st.head_mas > 0 or st.foot_mas > 0
-  for comp, m in pairs(MASSAGE) do
-    local speed = mas_index(st[m.field])
-    if force or device:get_field(comp .. "_speed") ~= speed then
-      device:emit_component_event(device.profile.components[comp], capabilities.fanSpeed.fanSpeed(speed))
-      device:set_field(comp .. "_speed", speed)
-    end
-  end
   local vib = WAVE_TO_SPEED[st.wave]
   if vib and (force or device:get_field("vibration_speed") ~= vib) then
     device:emit_component_event(device.profile.components.vibration, capabilities.fanSpeed.fanSpeed(vib))
     device:set_field("vibration_speed", vib)
   end
-  emit_mode("massageTimer", running and (TIMER_MODES[st.timer + 1] or "Off") or "Off")
   device:set_field("massage_on", running)
+  if not device:get_field("preset_pending") then emit_bed_mode(device, match_mode(device, st), force) end
+  report_massage(device, st, force)
 
   log.debug(string.format("[%s] head=%d foot=%d headMas=%d footMas=%d timer=%d remaining=%ds",
     device.label, st.head, st.foot, st.head_mas, st.foot_mas, st.timer, st.remaining // 100))
 end
 
 -- 5. OPERATION RUNNER
+local MB_PRESET_OPS = { MEM_A = true, MEM_B = true, ZERO_G = true, FLAT = true }
 -- Only one operation runs at a time; starting a new one cancels the old one.
 local function run_op(device, name, fn)
+  if not MB_PRESET_OPS[name] then device:set_field("preset_pending", false) end
   local id = (device:get_field("op_id") or 0) + 1
   device:set_field("op_id", id)
   cosock.spawn(function()
@@ -319,6 +471,37 @@ local function move_lumbar(device, conn, cancelled, target_pct)
   if not conn.closed then stop_and_settle(device, conn) end
   emit_level(device, "lumbar", pos, true)
   log.info(string.format("[%s] Lumbar estimated at %d%%", device.label, math.floor(pos + 0.5)))
+end
+
+-- motionBed start(position): keep moving until stop(), another command, end of travel or MAX_MOVE_S.
+local function hold_move(device, conn, cancelled, position)
+  local frame_name, part, dir = table.unpack(MB_MOVES[position])
+  local start = socket.gettime()
+  log.info(string.format("[%s] Hold move %s", device.label, position))
+
+  local travel = tonumber(device.preferences.lumbarSeconds) or 15
+  local lumbar_from = device:get_field("lumbar_pos") or (dir > 0 and 0 or 100)
+  local last_pos, stall_t
+  while not cancelled() do
+    local now = socket.gettime()
+    if now - start > MAX_MOVE_S then log.warn("Hold move timed out"); break end
+    local s = exchange(conn, frame_name)
+    report(device, s)
+    if part == nil then
+      local pos = math.max(0, math.min(100, lumbar_from + dir * ((now - start) / travel) * 100))
+      device:set_field("lumbar_pos", pos, { persist = true })
+      emit_level(device, "lumbar", pos)
+    elseif s then
+      local pos = s[part]
+      if last_pos and pos == last_pos then stall_t = stall_t or now else stall_t = nil end
+      last_pos = pos
+      if stall_t and now - stall_t >= STALL_S and now - start > 1.5 then
+        if dir > 0 then learn_max(device, part, pos, true) end
+        break -- end of travel
+      end
+    end
+  end
+  if not conn.closed then stop_and_settle(device, conn) end
 end
 
 -- Drive head or foot to a target percentage.
@@ -444,8 +627,131 @@ local function set_timer(device, conn, cancelled, target)
   report(device, st, true)
 end
 
+-- Set head and/or foot intensity (0-3) in one operation.
+local function set_intensities(device, conn, cancelled, head, foot)
+  if head then set_massage(device, conn, cancelled, "headMassage", head) end
+  if foot and not cancelled() then set_massage(device, conn, cancelled, "footMassage", foot) end
+end
+
+local function clamp_intensity(v) return math.max(0, math.min(3, math.floor(tonumber(v) or 0))) end
+
+local function handle_set_intensity(which)
+  return function(driver, device, command)
+    local level = clamp_intensity(command.args.intensity)
+    log.info(string.format("[%s] massageIntensityControl %s -> %d", device.label, which, level))
+    run_op(device, "intensity-" .. which, function(conn, cancelled)
+      if which == "head" then set_intensities(device, conn, cancelled, level, nil)
+      elseif which == "foot" then set_intensities(device, conn, cancelled, nil, level)
+      else set_intensities(device, conn, cancelled, level, level) end
+    end)
+  end
+end
+
+-- nextIntensity: Off -> Low -> Medium -> High -> Off
+local function handle_next_intensity(driver, device, command)
+  local position = command.args.position
+  log.info(string.format("[%s] nextIntensity %s", device.label, tostring(position)))
+  run_op(device, "next-intensity", function(conn, cancelled)
+    local st = read_status(conn)
+    if not st then return end
+    local head, foot = mas_index(st.head_mas), mas_index(st.foot_mas)
+    local function nxt(v) return v < 3 and v + 1 or 0 end
+    if position == "head" then set_intensities(device, conn, cancelled, nxt(head), nil)
+    elseif position == "foot" then set_intensities(device, conn, cancelled, nil, nxt(foot))
+    else local n = nxt(math.max(head, foot)); set_intensities(device, conn, cancelled, n, n) end
+  end)
+end
+
+-- massageOperating start: restore the last levels used (Low/Low the first time)
+local function handle_massage_start(driver, device, command)
+  run_op(device, "massage-start", function(conn, cancelled)
+    local st = read_status(conn)
+    if not st then return end
+    if st.head_mas > 0 or st.foot_mas > 0 then report(device, st, true); return end
+    local last = device:get_field("last_mas") or { head = 1, foot = 1 }
+    log.info(string.format("[%s] Massage start: head=%d foot=%d", device.label, last.head, last.foot))
+    set_intensities(device, conn, cancelled, last.head, last.foot)
+  end)
+end
+
+-- massageOperating stop: Timer/All Off (only if something is running)
+local function handle_massage_stop(driver, device, command)
+  run_op(device, "massage-stop", function(conn, cancelled)
+    local st = read_status(conn)
+    if not st then return end
+    if st.head_mas > 0 or st.foot_mas > 0 then st = tap_and_wait(device, conn, "TIMER", st) end
+    report(device, st, true)
+  end)
+end
+
+-- massageTimeChange nextTime: 10 -> 20 -> 30 -> 10 (keeps a running massage going)
+local function handle_next_time(driver, device, command)
+  run_op(device, "next-time", function(conn, cancelled)
+    local st = read_status(conn)
+    if not st then return end
+    set_timer(device, conn, cancelled, (st.timer % 3) + 1)
+  end)
+end
+
+-- massageTimeControl setTime(minutes): 0 = all off; 10/20/30 (others rounded to the nearest)
+local function handle_set_time(driver, device, command)
+  local minutes = tonumber(command.args.massageTime) or 0
+  local target = 0
+  if minutes > 0 then target = math.max(1, math.min(3, math.floor(minutes / 10 + 0.5))) end
+  log.info(string.format("[%s] setTime %s min -> %s", device.label, tostring(minutes), TIMER_MODES[target + 1]))
+  run_op(device, "set-time", function(conn, cancelled)
+    set_timer(device, conn, cancelled, target)
+  end)
+end
+
 -- 6. CAPABILITY HANDLERS
--- Massage intensity as a fan-speed slider: 0 Off, 1 Low, 2 Medium, 3 High (4 is treated as High)
+-- Run a preset (Flat / Zero-G / Memory A / Memory B), then read where it ended up.
+-- The first run of each preset (or after a relearn) records that position for mode matching.
+local function run_preset(device, mode)
+  local frame_name = MB_MODE_FRAME[mode]
+  local settle = tonumber(device.preferences.presetSeconds) or 50
+  device:set_field("preset_pending", true)
+  emit_bed_mode(device, mode) -- show the requested mode right away
+  run_op(device, frame_name, function(conn, cancelled)
+    exchange(conn, frame_name)
+    -- Polling sends STOP, which would interrupt the preset, so wait for it to finish first.
+    local start = socket.gettime()
+    while not cancelled() and socket.gettime() - start < settle do socket.sleep(0.25) end
+    if cancelled() then return end
+    local st = exchange(conn, "STOP") or exchange(conn, "STOP")
+    learn_preset(device, mode, st)
+    device:set_field("preset_pending", false)
+    report(device, st, true)
+  end)
+end
+
+local function handle_bed_set_mode(driver, device, command)
+  local mode = command.args.mode
+  if not MB_MODE_FRAME[mode] then return end
+  log.info(string.format("[%s] motionBed setMode %s", device.label, mode))
+  run_preset(device, mode)
+end
+
+local function handle_bed_start(driver, device, command)
+  local position = command.args.position
+  if not MB_MOVES[position] then return end
+  run_op(device, "hold-" .. position, function(conn, cancelled)
+    hold_move(device, conn, cancelled, position)
+  end)
+end
+
+local function handle_bed_stop(driver, device, command)
+  log.info(string.format("[%s] motionBed stop %s", device.label, tostring(command.args.position)))
+  run_op(device, "stop", function(conn) stop_and_settle(device, conn) end)
+end
+
+local function handle_switch(driver, device, command)
+  -- the switch only reports health: re-publish the real state and check now
+  emit_switch(device)
+  cosock.spawn(function() health_check(device) end, "ergomotion-health")
+end
+
+-- Vibration pattern as a fan-speed slider
 local function handle_set_fan_speed(driver, device, command)
   local comp = command.component
   if comp == "vibration" then
@@ -456,51 +762,6 @@ local function handle_set_fan_speed(driver, device, command)
       set_vibration(device, conn, cancelled, SPEED_TO_WAVE[speed])
     end)
     return
-  end
-  if not MASSAGE[comp] then return end
-  local target = math.max(0, math.min(3, math.floor(tonumber(command.args.speed) or 0)))
-  log.info(string.format("[%s] Set %s to %s", device.label, comp, MASSAGE_MODES[target + 1]))
-  device:set_field(comp .. "_speed", nil) -- force the real level to be re-emitted
-  run_op(device, "massage-" .. comp, function(conn, cancelled)
-    set_massage(device, conn, cancelled, comp, target)
-  end)
-end
-
-local function handle_set_mode(driver, device, command)
-  local comp, value = command.component, command.args.mode
-  log.info(string.format("[%s] Set %s to %s", device.label, comp, tostring(value)))
-  if comp == "massageTimer" then
-    local target = index_of(TIMER_MODES, value)
-    if not target then return end
-    run_op(device, "timer", function(conn, cancelled)
-      set_timer(device, conn, cancelled, target)
-    end)
-  end
-end
-
-local function handle_push(driver, device, command)
-  local entry = BUTTONS[command.component]
-  if not entry then return end
-  local frame_name, kind = entry[1], entry[2]
-  log.info(string.format("[%s] %s pressed (%s)", device.label, command.component, frame_name))
-
-  if kind == "stop" then
-    run_op(device, "stop", function(conn) stop_and_settle(device, conn) end)
-  elseif kind == "preset" then
-    local settle = tonumber(device.preferences.presetSeconds) or 25
-    run_op(device, frame_name, function(conn, cancelled)
-      report(device, exchange(conn, frame_name))
-      -- Polling sends STOP, which would interrupt the preset, so wait for it to finish first.
-      local start = socket.gettime()
-      while not cancelled() and socket.gettime() - start < settle do socket.sleep(0.25) end
-      if not cancelled() then
-        report(device, exchange(conn, "STOP") or exchange(conn, "STOP"), true)
-      end
-    end)
-  else -- tap
-    run_op(device, frame_name, function(conn)
-      report(device, exchange(conn, frame_name))
-    end)
   end
 end
 
@@ -527,6 +788,7 @@ local function handle_set_level(driver, device, command)
 end
 
 local function poll(device)
+  emit_static(device)
   run_op(device, "refresh", function(conn)
     report(device, exchange(conn, "STOP") or exchange(conn, "STOP"), true)
   end)
@@ -558,6 +820,11 @@ end
 local function info_changed(driver, device, event, args)
   log.info(string.format("[%s] Settings update noticed.", device.label))
   local old = args and args.old_st_store and args.old_st_store.preferences or {}
+  local relearn = device.preferences.relearnPreset
+  if relearn and relearn ~= old.relearnPreset and RELEARN[relearn] then
+    for _, mode in ipairs(RELEARN[relearn]) do device:set_field("preset_" .. mode, nil, { persist = true }) end
+    log.info(string.format("[%s] Cleared learned preset position(s) for %s; the next press relearns them", device.label, relearn))
+  end
   if old.ipAddress ~= device.preferences.ipAddress
     or old.headMax ~= device.preferences.headMax
     or old.footMax ~= device.preferences.footMax then
@@ -568,11 +835,25 @@ end
 local function device_init(driver, device)
   log.info(string.format("Attaching Ergomotion core handle for: %s", device.label))
   device:set_field("op_busy", false)
+  device:set_field("preset_pending", false)
+  device:set_field("online", nil)
+  device:set_field("fail_count", 0)
+  emit_switch(device) -- reports off until the first successful connection
+  emit_static(device)
+  emit_bed_mode(device, "noMode", true)
+  device:set_field("mtc_epoch", nil)
+
+  -- health: re-check every HEALTH_INTERVAL_S while online, every tick while offline
+  device.thread:call_on_schedule(HEALTH_TICK_S, function()
+    local last_ok = device:get_field("last_ok") or 0
+    if device:get_field("online") ~= true or socket.gettime() - last_ok >= HEALTH_INTERVAL_S then
+      health_check(device)
+    end
+  end, "health-check")
   -- The bed never reports lumbar, so always publish a value or the app disables the slider.
   -- If the position has never been tracked, show 0%; the first move re-syncs by lowering fully.
   device:set_field("lumbar_level", nil)
   emit_level(device, "lumbar", device:get_field("lumbar_pos") or 0, true)
-  device:emit_component_event(device.profile.components.massageTimer, capabilities.mode.supportedModes(TIMER_MODES))
   -- the bed only reports status when asked, so check every minute while a massage is running
   device.thread:call_on_schedule(60, function()
     if device:get_field("massage_on") and not device:get_field("op_busy") then poll(device) end
@@ -589,17 +870,38 @@ end
 local ergomotion_driver = Driver("ergomotion_driver", {
   --discovery = discovery_handler,
   capability_handlers = {
-    [capabilities.momentary.ID] = {
-      [capabilities.momentary.commands.push.NAME] = handle_push,
-    },
     [capabilities.switchLevel.ID] = {
       [capabilities.switchLevel.commands.setLevel.NAME] = handle_set_level,
     },
     [capabilities.fanSpeed.ID] = {
       [capabilities.fanSpeed.commands.setFanSpeed.NAME] = handle_set_fan_speed,
     },
-    [capabilities.mode.ID] = {
-      [capabilities.mode.commands.setMode.NAME] = handle_set_mode,
+    ["massageIntensityControl"] = {
+      ["setIntensityHead"] = handle_set_intensity("head"),
+      ["setIntensityFoot"] = handle_set_intensity("foot"),
+      ["setIntensityWhole"] = handle_set_intensity("whole"),
+    },
+    ["massageIntensityChange"] = {
+      ["nextIntensity"] = handle_next_intensity,
+    },
+    ["massageOperating"] = {
+      ["start"] = handle_massage_start,
+      ["stop"] = handle_massage_stop,
+    },
+    ["massageTimeChange"] = {
+      ["nextTime"] = handle_next_time,
+    },
+    ["massageTimeControl"] = {
+      ["setTime"] = handle_set_time,
+    },
+    ["motionBed"] = {
+      ["setMode"] = handle_bed_set_mode,
+      ["start"] = handle_bed_start,
+      ["stop"] = handle_bed_stop,
+    },
+    [capabilities.switch.ID] = {
+      [capabilities.switch.commands.on.NAME] = handle_switch,
+      [capabilities.switch.commands.off.NAME] = handle_switch,
     },
     [capabilities.refresh.ID] = {
       [capabilities.refresh.commands.refresh.NAME] = handle_refresh,

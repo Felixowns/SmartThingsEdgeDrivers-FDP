@@ -1,11 +1,25 @@
 name: ergomotion-bed
 components:
 - id: main
-  label: "Flat"
+  label: "Bed"
   capabilities:
-  - id: momentary
-    version: 1
   - id: refresh
+    version: 1
+  - id: switch
+    version: 1
+  - id: motionBed
+    version: 1
+  - id: massageIntensityControl
+    version: 1
+  - id: massageIntensityChange
+    version: 1
+  - id: massageOperating
+    version: 1
+  - id: massageOperatingState
+    version: 1
+  - id: massageTimeControl
+    version: 1
+  - id: massageTimeChange
     version: 1
 - id: head
   label: "Head Position"
@@ -21,41 +35,6 @@ components:
   label: "Lumbar Position"
   capabilities:
   - id: switchLevel
-    version: 1
-- id: zeroG
-  label: "Zero-G"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: stop
-  label: "Stop"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: mema
-  label: "Memory-A"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: memb
-  label: "Memory-B"
-  capabilities:
-  - id: momentary
-    version: 1
-- id: headMassage
-  label: "Head Massage"
-  capabilities:
-  - id: fanSpeed
-    version: 1
-- id: footMassage
-  label: "Foot Massage"
-  capabilities:
-  - id: fanSpeed
-    version: 1
-- id: massageTimer
-  label: "Massage Timer"
-  capabilities:
-  - id: mode
     version: 1
 - id: vibration
   label: "Vibration Pattern"
@@ -87,8 +66,8 @@ preferences:
     preferenceType: integer
     definition:
       minimum: 5
-      maximum: 60
-      default: 25
+      maximum: 90
+      default: 50
   - name: headMax
     title: "Head max travel (raw, 0 = auto)"
     description: "Raw head position at full raise. Leave 0 to learn it by setting Head Position to 100%"
@@ -107,3 +86,16 @@ preferences:
       minimum: 0
       maximum: 65535
       default: 0
+  - name: relearnPreset
+    title: "Relearn preset position"
+    description: "Pick a preset to forget its learned position; the next time it is pressed the bed position is learned again. Set back to No when done."
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        none: "No"
+        memA: "Memory A"
+        memB: "Memory B"
+        zeroG: "Zero-G"
+        all: "All presets"
+      default: none
