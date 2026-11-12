@@ -1,0 +1,22 @@
+# The Arduino ESP32 Matter library uses the test VID/PID 0xFFF1 / 0x8000 for every
+# sketch, so the Balboa spa and this thermostat report the SAME vendor/product ID.
+# A matterManufacturer entry for 0xFFF1/0x8000 is therefore left out here (the Balboa
+# driver already claims it). Instead this driver matches on the endpoint mix that only
+# the Friedrich bridge has: Thermostat + Fan + Humidity Sensor.
+#
+# If the hub still picks the wrong driver, open the device in the app, tap ⋮ -> Driver
+# and choose "Friedrich Thermostat".
+matterGeneric:
+  - id: "friedrich/vrp-tstat-fan-rh"
+    deviceLabel: Friedrich Thermostat
+    deviceTypes:
+      - id: 0x0301   # Thermostat
+      - id: 0x002B   # Fan
+      - id: 0x0307   # Humidity Sensor
+    deviceProfileName: friedrich-thermostat
+  - id: "friedrich/vrp-tstat-fan"
+    deviceLabel: Friedrich Thermostat
+    deviceTypes:
+      - id: 0x0301   # Thermostat
+      - id: 0x002B   # Fan
+    deviceProfileName: friedrich-thermostat

@@ -1,0 +1,119 @@
+name: friedrich-thermostat
+components:
+  - id: main
+    label: "Thermostat"
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+      - id: thermostatMode
+        version: 1
+      - id: thermostatHeatingSetpoint
+        version: 1
+      - id: thermostatCoolingSetpoint
+        version: 1
+      - id: thermostatOperatingState
+        version: 1
+      - id: relativeHumidityMeasurement
+        version: 1
+      - id: thermostatFanMode
+        version: 1
+      - id: airConditionerFanMode
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Thermostat
+  - id: control
+    label: "ESP32 control"
+    capabilities:
+      - id: switch
+        version: 1
+    categories:
+      - name: Switch
+preferences:
+  - name: epThermostat
+    title: "Thermostat endpoint"
+    description: "0 = find it automatically"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epFan
+    title: "Fan endpoint"
+    description: "0 = find it automatically"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epHumidity
+    title: "Humidity endpoint"
+    description: "0 = find it automatically"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epTemperature
+    title: "Temp sensor endpoint"
+    description: "0 = auto. Only used without a Thermostat endpoint"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epControl
+    title: "ESP32 control endpoint"
+    description: "0 = find it automatically"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epFanConstant
+    title: "Fan constant endpoint"
+    description: "0 = find it automatically"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: heatMinF
+    title: "Lowest heat setpoint F"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 45
+      maximum: 90
+      default: 60
+  - name: heatMaxF
+    title: "Highest heat setpoint F"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 45
+      maximum: 90
+      default: 86
+  - name: coolMinF
+    title: "Lowest cool setpoint F"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 55
+      maximum: 95
+      default: 61
+  - name: coolMaxF
+    title: "Highest cool setpoint F"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 55
+      maximum: 95
+      default: 86

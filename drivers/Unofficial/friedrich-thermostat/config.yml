@@ -1,0 +1,6 @@
+name: 'Friedrich Thermostat'
+packageKey: 'friedrich-thermostat'
+permissions:
+  matter: {}
+description: "Friedrich VRP (via ESP32-C6 RS485 Matter bridge): mode, setpoints, fan, room temp and humidity"
+vendorSupportInformation: "https://support.smartthings.com"
