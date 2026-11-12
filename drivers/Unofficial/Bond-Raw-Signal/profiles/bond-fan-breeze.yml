@@ -1,0 +1,103 @@
+name: bond-fan-breeze
+components:
+- id: main
+  label: Fan
+  capabilities:
+  - id: switch
+    version: 1
+  - id: fanSpeed
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Fan
+- id: light
+  label: Light
+  capabilities:
+  - id: switch
+    version: 1
+  categories:
+  - name: Light
+- id: breeze
+  label: Breeze / random
+  capabilities:
+  - id: momentary
+    version: 1
+  categories:
+  - name: Fan
+- id: dimmer
+  label: Light dimmer
+  capabilities:
+  - id: momentary
+    version: 1
+  categories:
+  - name: Light
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = send the copied
+    raw signals with this driver's extra settings.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+      shark: Shark misting fan (custom)
+    default: bond
+- name: speedMap1
+  title: Fan speed for step 1
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 10
+    default: 0
+  description: Real fan speed used for SmartThings speed step 1. 0 = automatic.
+- name: speedMap2
+  title: Fan speed for step 2
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 10
+    default: 0
+  description: Real fan speed used for SmartThings speed step 2. 0 = automatic.
+- name: speedMap3
+  title: Fan speed for step 3
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 10
+    default: 0
+  description: Real fan speed used for SmartThings speed step 3. 0 = automatic.
+- name: speedMap4
+  title: Fan speed for step 4
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 10
+    default: 0
+  description: Real fan speed used for SmartThings speed step 4. 0 = automatic.
+- name: lightFix
+  title: Fix light state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'on': Mark as ON
+      'off': Mark as OFF
+    default: none
+- name: dimmerHoldMs
+  title: Dimmer press length (ms)
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 200
+    maximum: 10000
+    default: 3000
+  description: How long the dimmer is held per press

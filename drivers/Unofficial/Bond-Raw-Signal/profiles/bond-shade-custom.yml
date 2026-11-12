@@ -1,0 +1,60 @@
+name: bond-shade-custom
+components:
+- id: main
+  capabilities:
+  - id: windowShade
+    version: 1
+  - id: windowShadeLevel
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Blind
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = send the copied
+    raw signals with this driver's extra settings.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+    default: custom
+- name: openBursts
+  title: Bursts for full OPEN
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 1
+    maximum: 200
+    default: 45
+  description: Raw Open bursts from fully closed to fully open
+- name: closeBursts
+  title: Bursts for full CLOSE
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 1
+    maximum: 200
+    default: 45
+  description: Raw Close bursts from fully open to fully closed
+- name: coastBursts
+  title: Extra bursts at 0% / 100%
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 50
+    default: 5
+  description: Overrun to re-zero against the end stop
+- name: burstMs
+  title: Burst interval (ms)
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 100
+    maximum: 3000
+    default: 620
+  description: Time between bursts

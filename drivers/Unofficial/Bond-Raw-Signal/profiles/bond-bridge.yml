@@ -1,0 +1,33 @@
+name: bond-bridge
+components:
+- id: main
+  capabilities:
+  - id: refresh
+    version: 1
+  categories:
+  - name: Bridges
+preferences:
+- name: bondIp
+  title: Bond Bridge IP address
+  description: Leave blank to use the address found by discovery
+  required: false
+  preferenceType: string
+  definition:
+    stringType: text
+    default: ''
+- name: bondToken
+  title: Local token (manual)
+  description: Bond app > Bridge settings. Leave blank to use the automatic token.
+  required: false
+  preferenceType: string
+  definition:
+    stringType: text
+    default: ''
+- name: autoToken
+  title: Read token automatically
+  description: 'Works within 10 minutes of powering on the Bridge: power-cycle it,
+    then press Refresh on this device.'
+  required: false
+  preferenceType: boolean
+  definition:
+    default: true

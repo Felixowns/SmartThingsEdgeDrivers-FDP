@@ -1,0 +1,6 @@
+name: 'Bond-Raw-Signal'
+packageKey: 'bond-raw-signal'
+permissions:
+  lan: {}
+  discovery: {}
+description: "Pergola louvers driven by raw Gama 340 MHz bursts sent through a Bond Bridge (/v2/signal/tx), with burst-counted position."

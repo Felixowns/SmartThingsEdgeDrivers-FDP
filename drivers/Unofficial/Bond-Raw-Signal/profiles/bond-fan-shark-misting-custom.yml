@@ -1,0 +1,183 @@
+name: bond-fan-shark-misting-custom
+components:
+- id: main
+  label: Fan
+  capabilities:
+  - id: switch
+    version: 1
+  - id: fanSpeed
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Fan
+- id: boost
+  label: Boost
+  capabilities:
+  - id: switch
+    version: 1
+  categories:
+  - name: Fan
+- id: mist
+  label: Mist
+  capabilities:
+  - id: mode
+    version: 1
+  categories:
+  - name: Humidifier
+- id: swing
+  label: Swing
+  capabilities:
+  - id: mode
+    version: 1
+  categories:
+  - name: Fan
+- id: breeze
+  label: Breeze
+  capabilities:
+  - id: mode
+    version: 1
+  categories:
+  - name: Fan
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = raw signals. Shark
+    misting fan = this custom layout.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+      shark: Shark misting fan (custom)
+    default: shark
+- name: speedMap1
+  title: Fan speed for step 1
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 5
+    default: 0
+  description: Fan speed (1-5) used for SmartThings speed step 1. 0 = automatic.
+- name: speedMap2
+  title: Fan speed for step 2
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 5
+    default: 0
+  description: Fan speed (1-5) used for SmartThings speed step 2. 0 = automatic.
+- name: speedMap3
+  title: Fan speed for step 3
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 5
+    default: 0
+  description: Fan speed (1-5) used for SmartThings speed step 3. 0 = automatic.
+- name: speedMap4
+  title: Fan speed for step 4
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 0
+    maximum: 5
+    default: 0
+  description: Fan speed (1-5) used for SmartThings speed step 4. 0 = automatic.
+- name: startSpeed
+  title: Speed after power on
+  description: The speed the fan starts at when it is turned on (power off resets
+    it)
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 1
+    maximum: 5
+    default: 1
+- name: pressMs
+  title: Time between button presses (ms)
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 650
+    maximum: 3000
+    default: 900
+  description: Spacing when a setting needs several presses
+- name: fixPower
+  title: Fix power state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'on': Mark as ON
+      'off': Mark as OFF
+    default: none
+- name: fixSpeed
+  title: Fix fan speed
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      '1': Speed 1
+      '2': Speed 2
+      '3': Speed 3
+      '4': Speed 4
+      '5': Speed 5
+    default: none
+- name: fixBoost
+  title: Fix boost state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'on': Mark as ON
+      'off': Mark as OFF
+    default: none
+- name: fixMist
+  title: Fix mist state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'off': 'Off'
+      low: Low
+      medium: Medium
+      high: High
+    default: none
+- name: fixSwing
+  title: Fix swing state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'off': 'Off'
+      narrow: Narrow
+      medium: Medium
+      wide: Wide
+    default: none
+- name: fixBreeze
+  title: Fix breeze state
+  description: Corrects the tracked state without sending a signal
+  required: false
+  preferenceType: enumeration
+  definition:
+    options:
+      none: No change
+      'off': 'Off'
+      b1: Breeze 1
+      b2: Breeze 2
+    default: none

@@ -1,0 +1,22 @@
+name: bond-light
+components:
+- id: main
+  capabilities:
+  - id: switch
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Light
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = send the copied
+    raw signals with this driver's extra settings.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+    default: bond

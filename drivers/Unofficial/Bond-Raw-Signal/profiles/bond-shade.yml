@@ -1,0 +1,24 @@
+name: bond-shade
+components:
+- id: main
+  capabilities:
+  - id: windowShade
+    version: 1
+  - id: windowShadeLevel
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Blind
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = send the copied
+    raw signals with this driver's extra settings.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+    default: bond

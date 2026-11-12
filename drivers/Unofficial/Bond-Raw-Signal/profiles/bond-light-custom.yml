@@ -1,0 +1,34 @@
+name: bond-light-custom
+components:
+- id: main
+  capabilities:
+  - id: momentary
+    version: 1
+  - id: switch
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Switch
+preferences:
+- name: behavior
+  title: Device behavior
+  description: Bond = act as configured in the Bond app. Custom = send the copied
+    raw signals with this driver's extra settings.
+  required: true
+  preferenceType: enumeration
+  definition:
+    options:
+      bond: Bond configuration
+      custom: Custom (raw signals)
+    default: custom
+- name: autoOffSec
+  title: Switch resets after (s)
+  required: true
+  preferenceType: integer
+  definition:
+    minimum: 1
+    maximum: 60
+    default: 3
+  description: 'Momentary trigger: the switch (for Alexa) turns itself off after this
+    long'
