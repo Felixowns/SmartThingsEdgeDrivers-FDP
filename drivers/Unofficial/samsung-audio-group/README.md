@@ -7,7 +7,7 @@ device, not 12.
 
 It's a rebuild of SmartThings' own `samsung-audio` driver, which kept showing speakers as offline.
 
-* **Driver channel (install link):** https://callaway.smartthings.com/channels/2a034761-9a9f-456c-bb58-f65efb66c12a
+* **Driver channel (install link):** https://bestow-regional.api.smartthings.com/invite/r3MyN0639J2p
 * **Source code:** https://github.com/Felixowns/SmartThingsEdgeDrivers-FDP/tree/main/drivers/Unofficial/samsung-audio-group
 
 ---
@@ -71,7 +71,7 @@ Samsung TVs and newer SmartThings-native soundbars that don't use the Multiroom 
 
 ### 1. Install the driver from the channel
 
-1. Open the channel link: https://callaway.smartthings.com/channels/2a034761-9a9f-456c-bb58-f65efb66c12a
+1. Open the channel invite link: https://bestow-regional.api.smartthings.com/invite/r3MyN0639J2p
 2. Sign in with your Samsung account, **accept** the invitation, and **enroll** your hub.
 3. Go to **Available Drivers** and install **Samsung Audio Group**.
 

@@ -58,8 +58,8 @@ Works with the iQ3 in both **dry contact** and **digital control** modes, since 
 
 ### From the channel
 
-1. Open the channel invite and sign in with your Samsung account:
-   **https://callaway.smartthings.com/channels/2a034761-9a9f-456c-bb58-f65efb66c12a**
+1. Open the channel invite link and sign in with your Samsung account:
+   **https://bestow-regional.api.smartthings.com/invite/r3MyN0639J2p**
 2. Enroll your hub, open **Available Drivers**, and install **Tailwind LAN**.
 
 ### From source (SmartThings CLI)

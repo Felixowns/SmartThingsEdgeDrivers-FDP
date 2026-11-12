@@ -75,7 +75,7 @@ Based on [Honeywell T6 (HomeKit local)](https://github.com/Stoeckie/smartthings-
 
 **From the driver channel (recommended)**
 
-1. Open the channel invite: https://callaway.smartthings.com/channels/2a034761-9a9f-456c-bb58-f65efb66c12a
+1. Open the channel invite: https://bestow-regional.api.smartthings.com/invite/r3MyN0639J2p
 2. Sign in with your Samsung account, accept the invitation and enroll your hub.
 3. Under **Available drivers**, install **Honeywell T10 (HomeKit local)**.
 
