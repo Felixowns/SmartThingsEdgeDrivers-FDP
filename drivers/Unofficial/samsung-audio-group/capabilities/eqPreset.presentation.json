@@ -1,0 +1,132 @@
+{
+  "dashboard": {
+    "states": [],
+    "actions": []
+  },
+  "detailView": [
+    {
+      "label": "EQ preset",
+      "displayType": "list",
+      "list": {
+        "command": {
+          "name": "setPreset",
+          "alternatives": [
+            {
+              "key": "None",
+              "value": "None",
+              "type": "active"
+            },
+            {
+              "key": "Pop",
+              "value": "Pop",
+              "type": "active"
+            },
+            {
+              "key": "Jazz",
+              "value": "Jazz",
+              "type": "active"
+            },
+            {
+              "key": "Classic",
+              "value": "Classic",
+              "type": "active"
+            }
+          ],
+          "argumentType": "string"
+        },
+        "state": {
+          "value": "preset.value",
+          "valueType": "string",
+          "alternatives": [
+            {
+              "key": "None",
+              "value": "None",
+              "type": "active"
+            },
+            {
+              "key": "Pop",
+              "value": "Pop",
+              "type": "active"
+            },
+            {
+              "key": "Jazz",
+              "value": "Jazz",
+              "type": "active"
+            },
+            {
+              "key": "Classic",
+              "value": "Classic",
+              "type": "active"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "automation": {
+    "conditions": [
+      {
+        "label": "EQ preset",
+        "displayType": "list",
+        "list": {
+          "alternatives": [
+            {
+              "key": "None",
+              "value": "None",
+              "type": "active"
+            },
+            {
+              "key": "Pop",
+              "value": "Pop",
+              "type": "active"
+            },
+            {
+              "key": "Jazz",
+              "value": "Jazz",
+              "type": "active"
+            },
+            {
+              "key": "Classic",
+              "value": "Classic",
+              "type": "active"
+            }
+          ],
+          "value": "preset.value",
+          "valueType": "string"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "label": "EQ preset",
+        "displayType": "list",
+        "list": {
+          "alternatives": [
+            {
+              "key": "None",
+              "value": "None",
+              "type": "active"
+            },
+            {
+              "key": "Pop",
+              "value": "Pop",
+              "type": "active"
+            },
+            {
+              "key": "Jazz",
+              "value": "Jazz",
+              "type": "active"
+            },
+            {
+              "key": "Classic",
+              "value": "Classic",
+              "type": "active"
+            }
+          ],
+          "command": "setPreset",
+          "argumentType": "string"
+        }
+      }
+    ]
+  }
+}

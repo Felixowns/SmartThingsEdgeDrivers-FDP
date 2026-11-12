@@ -1,0 +1,302 @@
+name: samsung-audio-group-6
+components:
+  - id: main
+    label: All Speakers
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker1
+    label: Speaker 1
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker2
+    label: Speaker 2
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker3
+    label: Speaker 3
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker4
+    label: Speaker 4
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker5
+    label: Speaker 5
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+  - id: speaker6
+    label: Speaker 6
+    capabilities:
+      - id: switch
+        version: 1
+      - id: mediaPlayback
+        version: 1
+        config:
+          values:
+            - key: "{{enumCommands}}"
+              enabledValues:
+                - 'play'
+                - 'pause'
+                - 'stop'
+            - key: "playbackStatus.value"
+              enabledValues:
+                - 'playing'
+                - 'paused'
+                - 'stopped'
+      - id: mediaTrackControl
+        version: 1
+      - id: audioVolume
+        version: 1
+      - id: audioMute
+        version: 1
+      - id: audioTrackData
+        version: 1
+      - id: audioNotification
+        version: 1
+      - id: mediaInputSource
+        version: 1
+      - id: mediaPlaybackShuffle
+        version: 1
+      - id: mediaPlaybackRepeat
+        version: 1
+      - id: worldinside12377.eqPreset
+        version: 1
+    categories:
+      - name: Speaker
+preferences:
+  - name: "pollInterval"
+    title: "Status refresh interval (seconds)"
+    description: "How often each speaker is checked"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 15
+      maximum: 600
+      default: 60
+  - name: "speakerIps"
+    title: "Speaker IPs (always included)"
+    description: "Comma-separated. These are always checked even if network discovery misses them. Newly discovered speakers are still added automatically."
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "none"
+  - name: "excludedIps"
+    title: "Excluded IPs"
+    description: "Comma-separated. Speakers at these IPs are removed and never added, even if discovered or listed above."
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "none"
+  - name: "resetSpeakers"
+    title: "Rebuild speaker list"
+    description: "Flip this switch to forget all speakers and search again"
+    required: false
+    preferenceType: boolean
+    definition:
+      default: false

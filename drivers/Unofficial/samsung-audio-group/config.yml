@@ -1,0 +1,6 @@
+name: 'Samsung Audio Group'
+packageKey: 'samsung-audio-group-fdp'
+permissions:
+  lan: {}
+  discovery: {}
+description: "All Samsung multiroom speakers on the LAN as one SmartThings device"

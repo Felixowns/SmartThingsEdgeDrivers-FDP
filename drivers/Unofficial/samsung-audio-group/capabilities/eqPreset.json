@@ -1,0 +1,56 @@
+{
+  "name": "EQ Preset",
+  "attributes": {
+    "preset": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "value"
+        ]
+      },
+      "enumCommands": [],
+      "setter": "setPreset"
+    },
+    "supportedPresets": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "value"
+        ]
+      },
+      "enumCommands": []
+    }
+  },
+  "commands": {
+    "setPreset": {
+      "name": "setPreset",
+      "arguments": [
+        {
+          "name": "preset",
+          "optional": false,
+          "schema": {
+            "type": "string",
+            "maxLength": 40
+          }
+        }
+      ]
+    }
+  }
+}
