@@ -36,6 +36,39 @@ function isExcluded(deviceName) {
   return EXCLUDED_DEVICE_NAMES.some((excluded) => excluded.trim().toLowerCase() === target);
 }
 
+// =============================================================
+// WINDOW GROUPS
+// Combine two Ring contact sensors into one SmartThings window device
+// with "Left Pane" / "Right Pane" sections. Use the exact sensor names
+// from the Ring app (case-insensitive). The individual sensors still
+// appear as their own devices unless HIDE_GROUPED_SENSORS is true.
+// =============================================================
+const WINDOW_GROUPS = [
+  {
+    id: 'window-master-bedroom-right',
+    name: 'Master Bedroom Right Window',
+    left: 'Master Bedroom Right L Window Sensor',
+    right: 'Master Bedroom Right R Window Sensor',
+  },
+  {
+    id: 'window-flex-room',
+    name: 'Flex Room Window',
+    left: 'Flex Room Left Window Sensor',
+    right: 'Flex Room Right Window Sensor',
+  },
+  {
+    id: 'window-master-bathroom',
+    name: 'Master Bathroom Window',
+    left: 'Master Bathroom Left Window Sensor',
+    right: 'Master Bathroom Right Window Sensor',
+  },
+];
+
+// true = paired pane sensors are left out of discovery ("Scan for nearby
+// devices"), so they aren't re-added after you delete their separate
+// SmartThings devices. Existing pane devices keep working until deleted.
+const HIDE_GROUPED_SENSORS = true;
+
 function loadToken() {
   try {
     const saved = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
@@ -57,6 +90,8 @@ ringApi.onRefreshTokenUpdated.subscribe(({ newRefreshToken }) => {
 const deviceCache = {};   // id -> { state } | { on }
 const ringDevices = {};   // id -> ring-client-api device/camera
 const subscribers = new Map(); // callback url -> last registration time
+const windowGroups = {};  // group id -> { name, leftId, rightId }
+const sensorIdsByName = {}; // lowercased sensor name -> id
 
 // ---- Push to SmartThings hub(s) ----------------------------------------
 function pushUpdate(id, value) {
@@ -85,6 +120,39 @@ function setState(id, value) {
   }
 }
 
+// ---- Window groups ----------------------------------------------------------
+function updateWindowGroup(groupId) {
+  const g = windowGroups[groupId];
+  const left = deviceCache[g.leftId]?.state || 'unknown';
+  const right = deviceCache[g.rightId]?.state || 'unknown';
+  const state = left === 'open' || right === 'open' ? 'open' : 'closed';
+  setState(groupId, { state, left, right });
+}
+
+function updateGroupsForSensor(sensorId) {
+  for (const [groupId, g] of Object.entries(windowGroups)) {
+    if (g.leftId === sensorId || g.rightId === sensorId) updateWindowGroup(groupId);
+  }
+}
+
+function isGroupedSensor(sensorId) {
+  return Object.values(windowGroups).some((g) => g.leftId === sensorId || g.rightId === sensorId);
+}
+
+function resolveWindowGroups() {
+  for (const g of WINDOW_GROUPS) {
+    const leftId = sensorIdsByName[g.left.trim().toLowerCase()];
+    const rightId = sensorIdsByName[g.right.trim().toLowerCase()];
+    if (!leftId || !rightId) {
+      console.warn(`[WINDOW GROUP] "${g.name}" skipped - sensor not found (left: ${leftId ? 'ok' : 'missing'}, right: ${rightId ? 'ok' : 'missing'})`);
+      continue;
+    }
+    windowGroups[g.id] = { name: g.name, leftId, rightId };
+    console.log(`[WINDOW GROUP] "${g.name}" = "${g.left}" + "${g.right}"`);
+    updateWindowGroup(g.id);
+  }
+}
+
 // ---- Ring setup -------------------------------------------------------------
 async function start() {
   try {
@@ -108,9 +176,11 @@ async function start() {
           return;
         }
         ringDevices[device.id] = device;
+        sensorIdsByName[name.trim().toLowerCase()] = device.id;
         deviceCache[device.id] = { state: device.data?.faulted ? 'open' : 'closed' };
         device.onData.subscribe((data) => {
           setState(device.id, { state: data.faulted ? 'open' : 'closed' });
+          updateGroupsForSensor(device.id);
         });
       });
 
@@ -131,6 +201,7 @@ async function start() {
       });
     }
 
+    resolveWindowGroups();
     console.log(`\nBridge ready. Total active endpoints monitored: ${Object.keys(ringDevices).length}\n`);
   } catch (err) {
     console.error('Ring initialization error:', err);
@@ -156,7 +227,11 @@ app.get('/api/devices', (req, res) => {
         category,
       };
     })
-    .filter((d) => d.category !== 'unknown');
+    .filter((d) => d.category !== 'unknown')
+    .filter((d) => !(HIDE_GROUPED_SENSORS && isGroupedSensor(d.id)));
+  for (const [id, g] of Object.entries(windowGroups)) {
+    deviceList.push({ id, name: g.name, category: 'window' });
+  }
   res.json(deviceList);
 });
 

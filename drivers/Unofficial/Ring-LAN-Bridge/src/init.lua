@@ -72,15 +72,35 @@ local function set_online(device, online)
 end
 
 -- Only emit when the value actually changes (avoids an event every poll).
-local function emit_if_changed(device, capability, attribute, value)
-  if device:get_latest_state("main", capability.ID, attribute.NAME) ~= value then
-    device:emit_event(attribute[value]())
+local function emit_if_changed(device, capability, attribute, value, component_id)
+  component_id = component_id or "main"
+  if device:get_latest_state(component_id, capability.ID, attribute.NAME) ~= value then
+    local event = attribute[value]()
+    if component_id == "main" then
+      device:emit_event(event)
+    else
+      device:emit_component_event(device.profile.components[component_id], event)
+    end
   end
+end
+
+-- Window devices (ring-window profile) have "left" and "right" pane components.
+local function is_window(device)
+  return device.profile ~= nil and device.profile.components ~= nil
+    and device.profile.components.left ~= nil
 end
 
 local function apply_state(device, data)
   if type(data) ~= "table" then return end
-  if device:supports_capability(capabilities.contactSensor) then
+  if is_window(device) then
+    -- Bridge sends { state = combined, left = ..., right = ... }
+    local values = { main = data.state, left = data.left, right = data.right }
+    for component_id, value in pairs(values) do
+      if value == "open" or value == "closed" then
+        emit_if_changed(device, capabilities.contactSensor, capabilities.contactSensor.contact, value, component_id)
+      end
+    end
+  elseif device:supports_capability(capabilities.contactSensor) then
     if data.state == "open" or data.state == "closed" then
       emit_if_changed(device, capabilities.contactSensor, capabilities.contactSensor.contact, data.state)
     else
@@ -148,21 +168,40 @@ local function ensure_subscribed(driver, ip, port, force)
   end
 end
 
+-- Older bridges have no /api/states; fall back to one request per device.
+local function refresh_device_legacy(device, ip, port)
+  local ring_id = get_ring_id(device)
+  if not ring_id then return end
+  local path = device:supports_capability(capabilities.switch) and "/api/lights/" or "/api/sensors/"
+  local code, body = http_json("GET", string.format("http://%s:%d%s%s", ip, port, path, ring_id))
+  if code == 200 then
+    set_online(device, true)
+    apply_state(device, body)
+  elseif code == nil then
+    set_online(device, false)
+  end
+end
+
 -- One request fetches every device's state from a bridge.
+-- Devices are only marked offline when the bridge can't be reached at all.
 local function refresh_bridge(group)
+  local key = bridge_key(group.ip, group.port)
   local code, states = http_json("GET", string.format("http://%s:%d/api/states", group.ip, group.port))
   if code == 200 and type(states) == "table" then
     for _, d in ipairs(group.devices) do
+      set_online(d, true)
       local s = states[get_ring_id(d)]
       if s then
-        set_online(d, true)
         apply_state(d, s)
       else
-        set_online(d, false) -- bridge doesn't know this device (excluded / removed)
+        log.debug(string.format("[%s] not in bridge state list (id %s)", d.label, tostring(get_ring_id(d))))
       end
     end
+  elseif code ~= nil then
+    log.info(string.format("bridge %s returned %s for /api/states; using per-device requests", key, tostring(code)))
+    for _, d in ipairs(group.devices) do refresh_device_legacy(d, group.ip, group.port) end
   else
-    log.warn(string.format("bridge %s unreachable: %s", bridge_key(group.ip, group.port), tostring(code)))
+    log.warn(string.format("bridge %s unreachable: %s", key, tostring(states)))
     for _, d in ipairs(group.devices) do set_online(d, false) end
   end
 end
@@ -317,7 +356,9 @@ local function discovery_handler(driver, opts, cons)
         type = "LAN",
         device_network_id = dni,
         label = dev.name,
-        profile = (dev.category == "light") and "ring-light" or "ring-contact",
+        profile = (dev.category == "light" and "ring-light")
+          or (dev.category == "window" and "ring-window")
+          or "ring-contact",
         manufacturer = "Ring",
         model = dev.category,
         vendor_provided_label = dev.name,
