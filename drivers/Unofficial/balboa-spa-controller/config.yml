@@ -1,0 +1,6 @@
+name: 'Balboa Spa Controller'
+packageKey: 'balboa-spa-controller'
+permissions:
+  matter: {}
+description: "Balboa BP7 spa (via ESP32-C6 Matter bridge): heater, pumps and light"
+vendorSupportInformation: "https://support.smartthings.com"

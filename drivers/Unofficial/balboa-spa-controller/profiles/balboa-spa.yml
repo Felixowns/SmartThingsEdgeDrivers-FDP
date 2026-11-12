@@ -1,0 +1,216 @@
+name: balboa-spa
+components:
+  - id: main
+    label: "Spa"
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+      - id: thermostatHeatingSetpoint
+        version: 1
+      - id: thermostatOperatingState
+        version: 1
+      - id: refresh
+        version: 1
+    categories:
+      - name: Thermostat
+  - id: spaStatus
+    label: "Spa status"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: circulation
+    label: "Circulation pump"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: filterCycle
+    label: "Filter cycle"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: heatMode
+    label: "Heat mode"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: tempRange
+    label: "Temperature range"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: pump1
+    label: "Pump 1"
+    capabilities:
+      - id: mode
+        version: 1
+  - id: pump2
+    label: "Pump 2"
+    capabilities:
+      - id: switch
+        version: 1
+  - id: pump3
+    label: "Pump 3"
+    capabilities:
+      - id: switch
+        version: 1
+  - id: pump4
+    label: "Pump 4"
+    capabilities:
+      - id: switch
+        version: 1
+  - id: light
+    label: "Light"
+    capabilities:
+      - id: switch
+        version: 1
+  - id: heaterA
+    label: "Heater sensor A"
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+  - id: heaterB
+    label: "Heater sensor B"
+    capabilities:
+      - id: temperatureMeasurement
+        version: 1
+preferences:
+  - name: epThermostat
+    title: "Heater endpoint (0 = auto)"
+    description: "Matter endpoint with the Thermostat / temperature cluster"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epPump1
+    title: "Pump 1 endpoint (0 = auto)"
+    description: "Endpoint for pump 1 (Fan Control, Mode Select or On/Off)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epPump2
+    title: "Pump 2 endpoint (0 = auto)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epPump3
+    title: "Pump 3 endpoint (0 = auto)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epPump4
+    title: "Pump 4 endpoint (0 = auto)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epLight
+    title: "Light endpoint (0 = auto)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epHeaterA
+    title: "Heater sensor A endpoint (0 = auto)"
+    description: "Temperature Sensor endpoint for heater sensor A (8 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epHeaterB
+    title: "Heater sensor B endpoint (0 = auto)"
+    description: "Temperature Sensor endpoint for heater sensor B (9 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epRange
+    title: "Temp range endpoint (0 = auto)"
+    description: "On/Off endpoint for the High/Low range (10 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epSpaStatus
+    title: "Spa status endpoint (0 = auto)"
+    description: "Mode Select endpoint for the spa status (11 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epCirculation
+    title: "Circulation endpoint (0 = auto)"
+    description: "Contact sensor endpoint for the circulation pump (12 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epHeatDetail
+    title: "Heat detail endpoint (0 = auto)"
+    description: "Mode Select endpoint for the heat mode shown on the Heat mode tile (13 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: epFilterCycle
+    title: "Filter cycle endpoint (0 = auto)"
+    description: "Mode Select endpoint for the filter cycle (14 in the current firmware)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 254
+      default: 0
+  - name: setpointMinF
+    title: "Lowest set temperature (°F)"
+    description: "Only used until the spa reports its own limits (they follow the Low/High range)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 50
+      maximum: 104
+      default: 80
+  - name: setpointMaxF
+    title: "Highest set temperature (°F)"
+    description: "Only used until the spa reports its own limits (they follow the Low/High range)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 50
+      maximum: 104
+      default: 104
+  - name: pollMinutes
+    title: "Temp read interval (min)"
+    description: "How often to re-read water and heater temps so the history has no gaps. 0 = off"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 0
+      maximum: 60
+      default: 5

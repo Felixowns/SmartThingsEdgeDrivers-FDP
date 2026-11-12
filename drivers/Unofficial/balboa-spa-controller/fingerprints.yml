@@ -1,0 +1,11 @@
+# Every Arduino-ESP32 Matter sketch uses the same test VID/PID (0xFFF1 / 0x8000), so matching on it would
+# also grab the Friedrich bridge. Match the spa by its device-type mix instead:
+# Thermostat (0x0301) + Fan (0x002B) + On/Off Light (0x0100). The Friedrich bridge has no light.
+matterGeneric:
+  - id: "balboa/spa-thermostat-fan-light"
+    deviceLabel: Balboa Spa
+    deviceTypes:
+      - id: 0x0301
+      - id: 0x002B
+      - id: 0x0100
+    deviceProfileName: balboa-spa
